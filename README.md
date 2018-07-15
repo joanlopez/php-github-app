@@ -1,7 +1,7 @@
 ### PHP GitHub Application
 
 This is a Symfony application that was thought to exploit the different features
-of the public GitHub API (i. e. counting the words appearances in a repository).
+of the public GitHub API (i. e. counting the words occurrences in a repository).
 
 #### GitHub API
 
@@ -25,3 +25,27 @@ will be used to make the HTTP/S requests to the GitHub API.
 Just run:
 
 > composer install
+
+#### Instructions
+
+##### Running as an HTTP service
+
+Start the HTTP service running the following command:
+
+> php bin/console server:run
+
+Then the application is available at `localhost:8000`.
+
+For example, to count the words occurrences of a repository, just do the following HTTP request:
+ 
+ > GET http://localhost:8000/repos/organization/repository/words
+
+##### Running as CLI
+
+For example, to count the words occurrences of a repository, just run:
+
+> php bin/console repos:words <organization> <repository>
+
+For further information run:
+
+> php bin/console repos:words --help

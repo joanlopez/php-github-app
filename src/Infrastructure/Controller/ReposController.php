@@ -17,21 +17,20 @@ use Symfony\Component\Routing\Annotation\Route;
 class ReposController extends AbstractController
 {
     /**
-     * @Route("/{org}/{repo}/words", methods="GET", name="getRepoWords")
+     * @Route("/{organization}/{repository}/words", methods="GET", name="getRepoWords")
      */
-    public function words($org, $repo)
+    public function words($organization, $repository)
     {
         $status = Response::HTTP_OK;
         $data = [];
-        $githubToken = getenv('GITHUB_AUTH_TOKEN');
         $client = new HttpGuzzleGithubApiClient(
-            new Client(['headers' => ['Authorization' => 'token '.$githubToken]]),
+            new Client(['headers' => ['Authorization' => 'token '. getenv('GITHUB_AUTH_TOKEN')]]),
             new PascalWordSplitter,
             new MapWordsCounter
         );
 
         try {
-            $data = $client->countRepoWords($org, $repo);
+            $data = $client->countRepoWords($organization, $repository);
         } catch (GuzzleException $e) {
             $status = Response::HTTP_NO_CONTENT;
         }
