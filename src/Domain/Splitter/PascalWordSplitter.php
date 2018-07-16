@@ -1,7 +1,6 @@
 <?php
 
-namespace App;
-
+namespace App\Domain\Splitter;
 
 class PascalWordSplitter implements WordSplitter
 {

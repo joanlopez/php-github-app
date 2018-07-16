@@ -2,10 +2,7 @@
 
 namespace App\Infrastructure\Command;
 
-use App\HttpGuzzleGithubApiClient;
-use App\MapWordsCounter;
-use App\PascalWordSplitter;
-use GuzzleHttp\Client;
+use App\Application\UseCase\CountWordsUseCase;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -15,6 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ReposCommand extends Command
 {
+    private const NAME = 'repos:words';
+
     private const ORGANIZATION_LABEL = 'organization';
 
     private const ORGANIZATION_DESCRIPTION = 'The organization name.';
@@ -23,31 +22,37 @@ class ReposCommand extends Command
 
     private const REPOSITORY_DESCRIPTION = 'The repository name.';
 
+    /** @var CountWordsUseCase */
+    private $countWordsUseCase;
+
+    public function __construct(CountWordsUseCase $countWords)
+    {
+        parent::__construct(self::NAME);
+        $this->countWordsUseCase = $countWords;
+    }
+
     protected function configure()
     {
         $this
-            ->setName('repos:words')
+            ->setName(self::NAME)
             ->setDescription('Count the words occurrences')
             ->addArgument(self::ORGANIZATION_LABEL, InputArgument::REQUIRED, self::ORGANIZATION_DESCRIPTION)
             ->addArgument(self::REPOSITORY_LABEL, InputArgument::REQUIRED, self::REPOSITORY_DESCRIPTION);
     }
 
+    /**
+     * @throws \App\Application\UseCase\UseCaseWrongParametersException
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $organization = $input->getArgument(self::ORGANIZATION_LABEL);
         $repository = $input->getArgument(self::REPOSITORY_LABEL);
 
-        $client = new HttpGuzzleGithubApiClient(
-            new Client(['headers' => ['Authorization' => 'token '. getenv('GITHUB_AUTH_TOKEN')]]),
-            new PascalWordSplitter,
-            new MapWordsCounter
-        );
-
         try {
-            $data = $client->countRepoWords($organization, $repository);
+            $wordsCount = $this->countWordsUseCase->do($organization, $repository);
             $table = new Table($output);
             $table->setHeaders(array('Word', '# occurrences'));
-            foreach ($data as $word => $occurrences) {
+            foreach ($wordsCount as $word => $occurrences) {
                 $table->addRow([$word, $occurrences]);
             }
             $table->render();

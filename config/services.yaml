@@ -13,12 +13,33 @@ services:
         public: false       # Allows optimizing the container by removing unused services; this also means
                             # fetching services directly from the container via $container->get() won't work.
                             # The best practice is to be explicit about your dependencies anyway.
-
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/*'
         exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    GuzzleHttp\Client:
+      class: 'GuzzleHttp\Client'
+
+    App\Infrastructure\HTTPClient\GuzzleHTTPClient:
+        arguments:
+            $client: '@GuzzleHttp\Client'
+
+    App\Application\Service\HTTPGitHubApiClient:
+        arguments:
+            $client: '@App\Infrastructure\HTTPClient\GuzzleHTTPClient'
+            $authToken: '%env(string:GITHUB_AUTH_TOKEN)%'
+
+    App\Domain\Splitter\PascalWordSplitter: ~
+    App\Domain\Counter\MapWordsCounter: ~
+
+    App\Application\UseCase\CountWordsUseCase:
+        arguments:
+            $client:  '@App\Application\Service\HTTPGitHubApiClient'
+            $splitter:  '@App\Domain\Splitter\PascalWordSplitter'
+            $counter: '@App\Domain\Counter\MapWordsCounter'
+
+    App\Infrastructure\Command\ReposCommand:
+        autowire: true
+
+    App\Infrastructure\Controller\ReposController:
+            autowire: true

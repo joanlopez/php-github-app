@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Domain\Counter;
 
 
 interface WordsCounter
@@ -9,5 +9,7 @@ interface WordsCounter
      * @param array|string[] $words
      * @return array|string[]
      */
-    public function count(array $words): array;
+    public function add(string ...$words);
+
+    public function count(): array;
 }
